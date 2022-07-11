@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,14 +53,28 @@ public class PointService {
         }
     }
 
-    public ResponseDetails updatePoint(HttpServletRequest request, PointDto pointDto) {
-        UUID userUid = tokenParse(request);
+    /**
+     * 유저 uid 와 매칭되는 point 정보 찾기
+     */
+    public Object getUserPoint(UUID userUid, String path) {
         Optional<Point> pointOptional = pointRepository.findByUserUid(userUid);
-        String path = "/api/payment/points";
         if (pointOptional.isEmpty()) {
             return new ResponseDetails("유저 uid 와 매칭되는 point 정보를 찾을 수 없습니다.", 404, path);
         }
-        Point point = pointOptional.get();
+        return pointOptional.get();
+    }
+
+    /**
+     * 포인트 변경 -> 사용/충전
+     */
+    public ResponseDetails updatePoint(HttpServletRequest request, PointDto pointDto) {
+        UUID userUid = tokenParse(request);
+        String path = "/api/payment/points";
+        Object data = getUserPoint(userUid, path);
+        if (!data.getClass().equals(Point.class)) {
+            return (ResponseDetails) data;
+        }
+        Point point = (Point) data;
         Long existingPoint = point.getPoint();
         // 포인트 사용이 가능한 상태인지 확인
         if (Type.of(pointDto.getType()) == Type.DEDUCTION && !pointValidation(existingPoint, pointDto)) {
@@ -70,5 +86,20 @@ public class PointService {
         PointRecord pointRecord = new PointRecord(userUid, point.getIdx(), pointDto, existingPoint, remainingPoint);
         pointRecordRepository.save(pointRecord);
         return new ResponseDetails(pointRecord, 200, path);
+    }
+
+    /**
+     * 유저의 보유 포인트 조회
+     */
+    public ResponseDetails showPoint(HttpServletRequest request) {
+        UUID userUid = tokenParse(request);
+        String path = "/api/payment/points";
+        Object data = getUserPoint(userUid, path);
+        if (!data.getClass().equals(Point.class)) {
+            return (ResponseDetails) data;
+        }
+        Map<String, Long> pointData = new HashMap<>();
+        pointData.put("point", ((Point) data).getPoint());
+        return new ResponseDetails(pointData, 200, path);
     }
 }
