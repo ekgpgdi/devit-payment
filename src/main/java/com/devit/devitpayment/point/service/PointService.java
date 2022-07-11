@@ -10,14 +10,18 @@ import com.devit.devitpayment.point.repository.PointRepository;
 import com.devit.devitpayment.rabbitMQ.dto.UserDto;
 import com.devit.devitpayment.token.AuthToken;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -101,5 +105,28 @@ public class PointService {
         Map<String, Long> pointData = new HashMap<>();
         pointData.put("point", ((Point) data).getPoint());
         return new ResponseDetails(pointData, 200, path);
+    }
+
+    /**
+     * 유저 포인트 기록 페이징 조회
+     */
+    public ResponseDetails showRecordPoint(HttpServletRequest request, Pageable pageable, String fromRegDt, String toRegDt) {
+        UUID userUid = tokenParse(request);
+        Page<PointRecord> pointRecords;
+        if (fromRegDt != null) {
+            LocalDate fromDate = LocalDate.parse(fromRegDt, DateTimeFormatter.ISO_DATE);
+            LocalDateTime fromDateTime = fromDate.atStartOfDay();
+            System.out.println(fromDateTime);
+
+            LocalDate toDate = LocalDate.parse(toRegDt, DateTimeFormatter.ISO_DATE);
+            LocalDateTime toDateTime = toDate.atTime(LocalTime.MAX);
+            System.out.println(toDateTime);
+
+            pointRecords = pointRecordRepository.findAllByUserUidAndCreatedAtBetween(pageable, userUid, fromDateTime, toDateTime);
+        } else {
+            pointRecords = pointRecordRepository.findAllByUserUid(pageable, userUid);
+        }
+        String path = "/api/payment/points/record";
+        return new ResponseDetails(pointRecords, 200, path);
     }
 }
