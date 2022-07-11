@@ -6,6 +6,7 @@ import com.devit.devitpayment.point.service.PointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,12 @@ public class PointController {
     @PutMapping("/points")
     public ResponseEntity<?> updatePoint(HttpServletRequest request, @RequestBody PointDto pointDto) {
         ResponseDetails responseDetails = pointService.updatePoint(request, pointDto);
+        return new ResponseEntity<>(responseDetails, HttpStatus.valueOf(responseDetails.getHttpStatus()));
+    }
+
+    @GetMapping("/points")
+    public ResponseEntity<?> showPoint(HttpServletRequest request) {
+        ResponseDetails responseDetails = pointService.showPoint(request);
         return new ResponseEntity<>(responseDetails, HttpStatus.valueOf(responseDetails.getHttpStatus()));
     }
 }
