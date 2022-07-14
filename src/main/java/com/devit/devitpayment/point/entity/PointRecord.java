@@ -1,22 +1,25 @@
 package com.devit.devitpayment.point.entity;
 
 import com.devit.devitpayment.point.dto.PointDto;
-import com.devit.devitpayment.util.Timestamped;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Getter
+@Setter
+@Table(name = "point_record")
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PointRecord extends Timestamped {
+@EntityListeners(AuditingEntityListener.class) // 생성/수정 시간을 자동으로 반영하도록 설정
+public class PointRecord {
     @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,6 +51,11 @@ public class PointRecord extends Timestamped {
     @Schema(example = "남은 포인트")
     private long remainingPoint;
 
+    @CreatedDate // 생성일자임을 나타냅니다.
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate // 마지막 수정일자임을 나타냅니다.
+    private LocalDateTime modifiedAt;
 
     public PointRecord(UUID userUid, long idx, PointDto pointDto, Long existingPoint, Long remainingPoint) {
         this.userUid = userUid;
