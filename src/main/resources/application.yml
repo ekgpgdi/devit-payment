@@ -33,7 +33,7 @@ spring:
     routingkey: devit.routingkey
 
   application:
-    name: certification-service
+    name: payment-service
 
   mvc:
     pathmatch:
