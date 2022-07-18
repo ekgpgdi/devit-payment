@@ -8,7 +8,7 @@ import com.devit.devitpayment.point.entity.Type;
 import com.devit.devitpayment.point.repository.PointRecordRepository;
 import com.devit.devitpayment.point.repository.PointRepository;
 import com.devit.devitpayment.rabbitMQ.dto.UserDto;
-import com.devit.devitpayment.token.AuthToken;
+import com.devit.devitpayment.token.TokenParse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -29,14 +28,7 @@ import java.util.*;
 public class PointService {
     private final PointRepository pointRepository;
     private final PointRecordRepository pointRecordRepository;
-    private final AuthToken authToken;
-
-    /**
-     * 요청 헤더 내 토큰 파싱하여 유저 uid 가져옴
-     */
-    public UUID tokenParse(HttpServletRequest request) {
-        return authToken.getUserUid(request);
-    }
+    private final TokenParse tokenParse;
 
     /**
      * 유저가 회원가입될 때 포인트 정보를 만들어줌 (point = 0)
@@ -72,7 +64,7 @@ public class PointService {
      * 포인트 변경 -> 사용/충전
      */
     public ResponseDetails updatePoint(HttpServletRequest request, PointDto pointDto) {
-        UUID userUid = tokenParse(request);
+        UUID userUid = tokenParse.tokenParse(request);
         String path = "/api/payment/points";
         Object data = getUserPoint(userUid, path);
         if (!data.getClass().equals(Point.class)) {
@@ -96,7 +88,7 @@ public class PointService {
      * 유저의 보유 포인트 조회
      */
     public ResponseDetails showPoint(HttpServletRequest request) {
-        UUID userUid = tokenParse(request);
+        UUID userUid = tokenParse.tokenParse(request);
         String path = "/api/payment/points";
         Object data = getUserPoint(userUid, path);
         if (!data.getClass().equals(Point.class)) {
@@ -111,16 +103,14 @@ public class PointService {
      * 유저 포인트 기록 페이징 조회
      */
     public ResponseDetails showRecordPoint(HttpServletRequest request, Pageable pageable, String fromRegDt, String toRegDt) {
-        UUID userUid = tokenParse(request);
+        UUID userUid = tokenParse.tokenParse(request);
         Page<PointRecord> pointRecords;
         if (fromRegDt != null) {
             LocalDate fromDate = LocalDate.parse(fromRegDt, DateTimeFormatter.ISO_DATE);
             LocalDateTime fromDateTime = fromDate.atStartOfDay();
-            System.out.println(fromDateTime);
 
             LocalDate toDate = LocalDate.parse(toRegDt, DateTimeFormatter.ISO_DATE);
             LocalDateTime toDateTime = toDate.atTime(LocalTime.MAX);
-            System.out.println(toDateTime);
 
             pointRecords = pointRecordRepository.findAllByUserUidAndCreatedAtBetween(pageable, userUid, fromDateTime, toDateTime);
         } else {
