@@ -32,7 +32,7 @@ public class PaymentController {
 
     @GetMapping("/payments")
     public ResponseEntity<?> updatePoint(HttpServletRequest request,
-                                         @PageableDefault(page = 1, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                                         @PageableDefault(page = 1, size = 10, sort = "created_at", direction = Sort.Direction.DESC) Pageable pageable,
                                          @RequestParam(name = "fromRegDt", required = false) String fromRegDt,
                                          @RequestParam(name = "toRegDt", required = false) String toRegDt) throws NoResourceException, IOException {
         ResponseDetails responseDetails = paymentService.showPaymentRecord(request, pageable, fromRegDt, toRegDt);
