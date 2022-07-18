@@ -1,5 +1,6 @@
 package com.devit.devitpayment.payment.service;
 
+import com.devit.devitpayment.common.ResponseDetails;
 import com.devit.devitpayment.exception.ErrorCode;
 import com.devit.devitpayment.exception.NoResourceException;
 import com.devit.devitpayment.exception.PointValidFailedException;
@@ -12,14 +13,23 @@ import com.devit.devitpayment.point.entity.PointRecord;
 import com.devit.devitpayment.point.entity.Type;
 import com.devit.devitpayment.point.repository.PointRecordRepository;
 import com.devit.devitpayment.point.repository.PointRepository;
+import com.devit.devitpayment.token.TokenParse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.json.JSONObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,6 +42,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PointRepository pointRepository;
     private final PointRecordRepository pointRecordRepository;
+    private final TokenParse tokenParse;
 
     /**
      * board uid 를 이용하여 board price 조회 (API 통신)
@@ -117,5 +128,23 @@ public class PaymentService {
         paymentRepository.save(paymentRecord);
 
         return paymentRecord;
+    }
+
+    public ResponseDetails showPaymentRecord(HttpServletRequest request, Pageable pageable, String fromRegDt, String toRegDt) {
+        UUID userUid = UUID.fromString("ea579e47-fcff-40df-8cf7-1bc3136a584d");
+        Page<PaymentRecord> paymentRecords;
+        if (fromRegDt != null) {
+            LocalDate fromDate = LocalDate.parse(fromRegDt, DateTimeFormatter.ISO_DATE);
+            LocalDateTime fromDateTime = fromDate.atStartOfDay();
+
+            LocalDate toDate = LocalDate.parse(toRegDt, DateTimeFormatter.ISO_DATE);
+            LocalDateTime toDateTime = toDate.atTime(LocalTime.MAX);
+
+            paymentRecords = paymentRepository.findAllByBuyerUidOrProviderUidAndCreatedAtBetween(pageable, userUid, fromDateTime, toDateTime);
+        } else {
+            paymentRecords = paymentRepository.findAllByBuyerUidOrProviderUid(pageable, userUid);
+        }
+        String path = "/api/payment/payments";
+        return new ResponseDetails(paymentRecords, 200, path);
     }
 }
