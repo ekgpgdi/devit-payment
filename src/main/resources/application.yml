@@ -1,6 +1,12 @@
 server:
   port: 8080
 
+logging:
+  level:
+    root: info
+  file:
+    name: /home/ubuntu/log/application-debug.log
+
 eureka:
   client:
     fetch-registry: true
