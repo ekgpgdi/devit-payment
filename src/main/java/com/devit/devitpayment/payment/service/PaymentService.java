@@ -29,7 +29,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,8 +47,8 @@ public class PaymentService {
      * board uid 를 이용하여 board price 조회 (API 통신)
      */
     public JSONObject getBoardPrice(UUID boardUid) throws IOException {
-        log.info("board uid 를 이용한 board price 조회 시작");
-        String url = "https://86d87ab5-38ec-49df-b4ef-9305cd10c0f9.mock.pstmn.io/api/board/" + boardUid;
+        log.info("board uid 를 이용한 board price 조회 시작 [boardUid : {}]", boardUid);
+        String url = "https://devit-backend.shop/api/boards/" + boardUid;
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         Request request = new Request.Builder()
@@ -74,7 +73,7 @@ public class PaymentService {
      * 포인트 변동 및 포인트 변동 기록
      */
     public PointRecord updatePoint(Point point, Long amount, String type) {
-        log.info("Point Entity 의 User uid 조회");
+        log.info("Point Entity 의 User uid 조회 [userUid : {}]", point.getUserUid());
         UUID userUid = point.getUserUid();
         PointDto pointDto = new PointDto(type, amount);
         log.info("Point Entity 의 existingPoint 조회");
@@ -94,12 +93,12 @@ public class PaymentService {
      */
     public PaymentRecord createPayment(PaymentDto paymentDto) throws NoResourceException, IOException, PointValidFailedException {
         // 1. 구매자와 일치하는 Point Entity 확인
-        log.info("구매자와 일치하는 Point Entity 확인");
+        log.info("구매자와 일치하는 Point Entity 확인 [구매자 UserUid : {}]", paymentDto.getBuyer().get("uid"));
         UUID buyerUid = UUID.fromString(paymentDto.getBuyer().get("uid"));
         Point buyerPoint = getUserPoint(buyerUid).orElseThrow(() -> new NoResourceException(ErrorCode.RESOURCE_NOT_FOUND, "NOT_FOUND_BUYER_POINT"));
 
         // 2. 제공자와 일치하는 Point Entity 확인
-        log.info("제공자와 일치하는 Point Entity 확인");
+        log.info("제공자와 일치하는 Point Entity 확인 [제공자 UserUid : {}]", paymentDto.getProvider().get("uid"));
         UUID providerUid = UUID.fromString(paymentDto.getProvider().get("uid"));
         Point providerPoint = getUserPoint(providerUid).orElseThrow(() -> new NoResourceException(ErrorCode.RESOURCE_NOT_FOUND, "NOT_FOUND_PROVIDER_POINT"));
 
@@ -111,7 +110,7 @@ public class PaymentService {
 
         // 4. 구매자의 보유 포인트가 price 만큼 있는지 확인
         if (buyerPoint.getPoint() < price) {
-            log.info("구매자의 포인트가 부족하여 결제가 실패되었습니다.");
+            log.info("구매자의 포인트가 부족하여 결제가 실패되었습니다. [구매자의 남은 포인트 : {}, 결제에 필요한 포인트 : {}]", buyerPoint.getPoint(), price);
             throw new PointValidFailedException(ErrorCode.BAD_REQUEST, "LACK_OF_BUYER_POINTS");
         }
 
@@ -124,6 +123,7 @@ public class PaymentService {
         PointRecord providerPointRecord = updatePoint(providerPoint, price, "CHARGE");
 
         // 7. 결제 기록 추가
+        log.info("결제 기록 추가");
         PaymentRecord paymentRecord = new PaymentRecord(buyerPointRecord, paymentDto.getBuyer().get("name"), providerPointRecord, paymentDto.getProvider().get("name"), boardUid, boardObject);
         paymentRepository.save(paymentRecord);
 
@@ -131,7 +131,8 @@ public class PaymentService {
     }
 
     public ResponseDetails showPaymentRecord(HttpServletRequest request, Pageable pageable, String fromRegDt, String toRegDt) {
-        UUID userUid = UUID.fromString("ea579e47-fcff-40df-8cf7-1bc3136a584d");
+        UUID userUid = tokenParse.tokenParse(request);
+        log.info("결제 기록 조회 [userUid : {}]", userUid);
         Page<PaymentRecord> paymentRecords;
         if (fromRegDt != null) {
             LocalDate fromDate = LocalDate.parse(fromRegDt, DateTimeFormatter.ISO_DATE);
@@ -140,6 +141,7 @@ public class PaymentService {
             LocalDate toDate = LocalDate.parse(toRegDt, DateTimeFormatter.ISO_DATE);
             LocalDateTime toDateTime = toDate.atTime(LocalTime.MAX);
 
+            log.info("기간으로 검색 [fromDate : {}, toRegDt : {}]", fromRegDt, toRegDt);
             paymentRecords = paymentRepository.findAllByBuyerUidOrProviderUidAndCreatedAtBetween(pageable, userUid, fromDateTime, toDateTime);
         } else {
             paymentRecords = paymentRepository.findAllByBuyerUidOrProviderUid(pageable, userUid);
