@@ -46,12 +46,13 @@ public class PaymentService {
     /**
      * board uid 를 이용하여 board price 조회 (API 통신)
      */
-    public JSONObject getBoardPrice(UUID boardUid) throws IOException {
+    public JSONObject getBoardPrice(UUID boardUid, String token) throws IOException {
         log.info("board uid 를 이용한 board price 조회 시작 [boardUid : {}]", boardUid);
         String url = "https://devit-backend.shop/api/boards/" + boardUid;
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         Request request = new Request.Builder()
+                .header("Authorization", token)
                 .url(url)
                 .get()
                 .build();
@@ -59,6 +60,7 @@ public class PaymentService {
         log.info("board uid 를 이용한 board price 조회 완료");
 
         String responseBody = Objects.requireNonNull(response.body()).string();
+        System.out.println(responseBody);
         return new JSONObject(responseBody);
     }
 
@@ -91,7 +93,9 @@ public class PaymentService {
     /**
      * 결제 진행
      */
-    public PaymentRecord createPayment(PaymentDto paymentDto) throws NoResourceException, IOException, PointValidFailedException {
+    public PaymentRecord createPayment(HttpServletRequest request, PaymentDto paymentDto) throws NoResourceException, IOException, PointValidFailedException {
+        String token = request.getHeader("Authorization");
+        log.info("header token 파싱 [token : {}]", token);
         // 1. 구매자와 일치하는 Point Entity 확인
         log.info("구매자와 일치하는 Point Entity 확인 [구매자 UserUid : {}]", paymentDto.getBuyer().get("uid"));
         UUID buyerUid = UUID.fromString(paymentDto.getBuyer().get("uid"));
@@ -105,7 +109,7 @@ public class PaymentService {
         // 3. Board 도메인으로 Price 요청
         log.info("Board 도메인으로 Price 요청");
         UUID boardUid = UUID.fromString(paymentDto.getBoard().get("uid"));
-        JSONObject boardObject = getBoardPrice(boardUid);
+        JSONObject boardObject = getBoardPrice(boardUid, token);
         Long price = boardObject.getLong("price");
 
         // 4. 구매자의 보유 포인트가 price 만큼 있는지 확인

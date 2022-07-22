@@ -27,10 +27,10 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/payments")
-    public ResponseEntity<?> updatePoint(@RequestBody PaymentDto paymentDto) throws NoResourceException, IOException {
+    public ResponseEntity<?> updatePoint(HttpServletRequest request, @RequestBody PaymentDto paymentDto) throws NoResourceException, IOException {
         log.info("==결제 요청 시작==");
         ResponseDetails responseDetails;
-        PaymentRecord result = paymentService.createPayment(paymentDto);
+        PaymentRecord result = paymentService.createPayment(request, paymentDto);
         responseDetails = ResponseDetails.success(result, "/api/payment/payments");
         return new ResponseEntity<>(responseDetails, HttpStatus.valueOf(responseDetails.getHttpStatus()));
     }
