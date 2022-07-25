@@ -111,7 +111,8 @@ public class PaymentService {
         UUID boardUid = UUID.fromString(paymentDto.getBoard().get("uid"));
         JSONObject boardObject = getBoardPrice(boardUid, token);
         String priceStr = boardObject.getString("price");
-        Long price = Long.valueOf(priceStr.replace(",", ""));
+        long price = Long.parseLong(priceStr.replace(",", ""));
+        log.info("price : {}", price);
 
         // 4. 구매자의 보유 포인트가 price 만큼 있는지 확인
         if (buyerPoint.getPoint() < price) {

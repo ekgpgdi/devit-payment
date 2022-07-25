@@ -87,6 +87,7 @@ public class PaymentRecord {
         this.providerName = providerName;
         this.boardUid = boardUid;
         this.boardTitle = boardObject.getString("title");
-        this.amount = boardObject.getLong("price");
+        String priceStr = boardObject.getString("price");
+        this.amount = Long.parseLong(priceStr.replace(",", ""));
     }
 }
