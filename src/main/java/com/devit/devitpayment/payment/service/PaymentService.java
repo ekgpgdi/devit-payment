@@ -48,15 +48,21 @@ public class PaymentService {
      */
     public JSONObject getBoardPrice(UUID boardUid, String token) throws IOException {
         log.info("board uid 를 이용한 board price 조회 시작 [boardUid : {}]", boardUid);
-        String url = "https://devit-backend.shop/api/boards/" + boardUid;
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                .build();
-        Request request = new Request.Builder()
-                .header("Authorization", token)
-                .url(url)
-                .get()
-                .build();
-        Response response = client.newCall(request).execute();
+        String url = "https://backend.devit.shop/api/boards/" + boardUid;
+        Response response;
+        try {
+            OkHttpClient client = new OkHttpClient().newBuilder()
+                    .build();
+            Request request = new Request.Builder()
+                    .header("Authorization", token)
+                    .url(url)
+                    .get()
+                    .build();
+            response = client.newCall(request).execute();
+        } catch (Exception e) {
+            log.info("board uid 를 이용한 board price 조회 실패");
+            return null;
+        }
         log.info("board uid 를 이용한 board price 조회 완료");
 
         String responseBody = Objects.requireNonNull(response.body()).string();
@@ -110,6 +116,9 @@ public class PaymentService {
         log.info("Board 도메인으로 Price 요청");
         UUID boardUid = UUID.fromString(paymentDto.getBoard().get("uid"));
         JSONObject boardObject = getBoardPrice(boardUid, token);
+        if(boardObject == null ){
+            throw new PointValidFailedException(ErrorCode.INTER_SERVER_ERROR, "BOARD_SERVICE_API_ERROR");
+        }
         String priceStr = boardObject.getString("price");
         long price = Long.parseLong(priceStr.replace(",", ""));
         log.info("price : {}", price);
