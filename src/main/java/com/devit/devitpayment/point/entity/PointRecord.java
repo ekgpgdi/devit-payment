@@ -19,6 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class) // 생성/수정 시간을 자동으로 반영하도록 설정
+@Builder
 public class PointRecord {
     @JsonIgnore
     @Id
@@ -56,13 +57,4 @@ public class PointRecord {
 
     @LastModifiedDate // 마지막 수정일자임을 나타냅니다.
     private LocalDateTime modifiedAt;
-
-    public PointRecord(UUID userUid, long idx, PointDto pointDto, Long existingPoint, Long remainingPoint) {
-        this.userUid = userUid;
-        this.pointIdx = idx;
-        this.existingPoint = existingPoint;
-        this.amount = pointDto.getAmount();
-        this.type = Type.of(pointDto.getType());
-        this.remainingPoint = remainingPoint;
-    }
 }
