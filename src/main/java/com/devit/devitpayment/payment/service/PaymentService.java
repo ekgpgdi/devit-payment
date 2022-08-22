@@ -48,7 +48,7 @@ public class PaymentService {
      */
     public JSONObject getBoardPrice(UUID boardUid, String token) throws IOException {
         log.info("board uid 를 이용한 board price 조회 시작 [boardUid : {}]", boardUid);
-        String url = "https://backend.devit.shop/api/boards/" + boardUid;
+        String url = "https://devit-backend.shop/api/boards/" + boardUid;
         Response response;
         try {
             OkHttpClient client = new OkHttpClient().newBuilder()
@@ -91,7 +91,14 @@ public class PaymentService {
         log.info("Point Entity 의 remainingPoint 조회");
         Long remainingPoint = point.getPoint();
         log.info("PointRecord entity 생성 및 저장");
-        PointRecord pointRecord = new PointRecord(userUid, point.getIdx(), pointDto, existingPoint, remainingPoint);
+        PointRecord pointRecord = PointRecord.builder()
+                        .userUid(userUid)
+                        .pointIdx(point.getIdx())
+                        .existingPoint(existingPoint)
+                        .remainingPoint(remainingPoint)
+                        .amount(pointDto.getAmount())
+                        .type(Type.of(pointDto.getType()))
+                        .build();
         pointRecordRepository.save(pointRecord);
         return pointRecord;
     }
@@ -139,7 +146,19 @@ public class PaymentService {
 
         // 7. 결제 기록 추가
         log.info("결제 기록 추가");
-        PaymentRecord paymentRecord = new PaymentRecord(buyerPointRecord, paymentDto.getBuyer().get("name"), providerPointRecord, paymentDto.getProvider().get("name"), boardUid, boardObject);
+        PaymentRecord paymentRecord = PaymentRecord.builder(UUID.randomUUID())
+                .buyerPointRecord(buyerPointRecord)
+                .buyerUid(buyerPointRecord.getUserUid())
+                .buyerName(paymentDto.getBuyer().get("name"))
+                .providerPointRecord(providerPointRecord)
+                .providerName(paymentDto.getProvider().get("name"))
+                .providerUid(providerPointRecord.getUserUid())
+                .boardUid(boardUid)
+                .boardTitle(boardObject.getString("title"))
+                .amount(price)
+                .build();
+
+        log.info("빌더 패턴 적용하기 : " + paymentRecord.toString());
         paymentRepository.save(paymentRecord);
 
         return paymentRecord;

@@ -1,13 +1,9 @@
 package com.devit.devitpayment.point.entity;
 
 import com.devit.devitpayment.point.dto.PointDto;
-import com.devit.devitpayment.rabbitMQ.dto.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -21,6 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class) // 생성/수정 시간을 자동으로 반영하도록 설정
+@Builder
 public class Point {
     @JsonIgnore
     @Id
@@ -41,11 +38,6 @@ public class Point {
 
     @LastModifiedDate // 마지막 수정일자임을 나타냅니다.
     private LocalDateTime modifiedAt;
-
-    public Point(UserDto userDto) {
-        this.userUid = userDto.getUuid();
-        this.point = 0;
-    }
 
     public void update(PointDto pointDto) {
         if (Type.CHARGE == Type.of(pointDto.getType())) {

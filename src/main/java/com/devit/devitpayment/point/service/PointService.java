@@ -37,7 +37,7 @@ public class PointService {
      */
     public void initUser(UserDto userDto) {
         log.info("유저 회원가입에 의한 Point 생성");
-        Point point = new Point(userDto);
+        Point point = Point.builder().userUid(userDto.getUuid()).point(0).build();
         pointRepository.save(point);
     }
 
@@ -81,16 +81,23 @@ public class PointService {
             return (ResponseDetails) data;
         }
         Point point = (Point) data;
-        Long existingPoint = point.getPoint();
+        long existingPoint = point.getPoint();
         // 포인트 사용이 가능한 상태인지 확인
         if (Type.of(pointDto.getType()) == Type.DEDUCTION && !pointValidation(existingPoint, pointDto)) {
             log.info("보유 포인트가 부족하여 400 에러를 응답합니다.");
             return new ResponseDetails("보유 포인트가 부족합니다.", 400, path);
         }
         point.update(pointDto);
-        Long remainingPoint = point.getPoint();
+        long remainingPoint = point.getPoint();
 
-        PointRecord pointRecord = new PointRecord(userUid, point.getIdx(), pointDto, existingPoint, remainingPoint);
+        PointRecord pointRecord = PointRecord.builder()
+                .userUid(userUid)
+                .pointIdx(point.getIdx())
+                .existingPoint(existingPoint)
+                .remainingPoint(remainingPoint)
+                .amount(pointDto.getAmount())
+                .type(Type.of(pointDto.getType()))
+                .build();
         pointRecordRepository.save(pointRecord);
         log.info("포인트 변동을 기록하였습니다. [pointIdx : {}]", pointRecord.getIdx());
         return new ResponseDetails(pointRecord, 200, path);
