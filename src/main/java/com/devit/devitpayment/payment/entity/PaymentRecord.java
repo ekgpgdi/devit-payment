@@ -1,13 +1,9 @@
 package com.devit.devitpayment.payment.entity;
 
-import com.devit.devitpayment.point.entity.Point;
 import com.devit.devitpayment.point.entity.PointRecord;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.json.JSONObject;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -22,6 +18,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class) // 생성/수정 시간을 자동으로 반영하도록 설정
+@Builder(builderMethodName = "paymentRecordBuilder") // 빌더 패턴 적용
+@ToString
 public class PaymentRecord {
     @JsonIgnore
     @Id
@@ -33,10 +31,9 @@ public class PaymentRecord {
     @Schema(example = "결제 식별 uid")
     private UUID paymentUid;
 
-    @JsonIgnore
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(example = "구매자의 point_record 테이블과 매핑되는 idx")
-    private long buyerPointRecordIdx;
+    @OneToOne(fetch = FetchType.LAZY) // 지연 로딩으로
+    private PointRecord buyerPointRecord;
 
     @Column(nullable = false, columnDefinition = "BINARY(16)")
     @Schema(example = "구매자 회원 uid")
@@ -46,10 +43,9 @@ public class PaymentRecord {
     @Schema(example = "구매자 회원 이름")
     private String buyerName;
 
-    @JsonIgnore
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(example = "제공자의 point_record 테이블과 매핑되는 idx")
-    private long providerPointRecordIdx;
+    @OneToOne(fetch = FetchType.LAZY) // 지연 로딩으로
+    private PointRecord providerPointRecord;
 
     @Column(nullable = false, columnDefinition = "BINARY(16)")
     @Schema(example = "제공자 회원 uid")
@@ -77,17 +73,10 @@ public class PaymentRecord {
     @LastModifiedDate // 마지막 수정일자임을 나타냅니다.
     private LocalDateTime modifiedAt;
 
-    public PaymentRecord(PointRecord buyerPointRecord, String buyerName, PointRecord providerPointRecord, String providerName, UUID boardUid, JSONObject boardObject) {
-        this.paymentUid = UUID.randomUUID();
-        this.buyerPointRecordIdx = buyerPointRecord.getIdx();
-        this.buyerUid = buyerPointRecord.getUserUid();
-        this.buyerName = buyerName;
-        this.providerPointRecordIdx = providerPointRecord.getIdx();
-        this.providerUid = providerPointRecord.getUserUid();
-        this.providerName = providerName;
-        this.boardUid = boardUid;
-        this.boardTitle = boardObject.getString("title");
-        String priceStr = boardObject.getString("price");
-        this.amount = Long.parseLong(priceStr.replace(",", ""));
+    public static PaymentRecordBuilder builder(UUID paymentUid) {
+        if(paymentUid == null) {
+            throw new IllegalArgumentException("필수 파라미터 누락");
+        }
+        return paymentRecordBuilder().paymentUid(paymentUid);
     }
 }
