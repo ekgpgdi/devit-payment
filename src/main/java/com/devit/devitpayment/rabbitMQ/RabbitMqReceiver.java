@@ -2,17 +2,16 @@ package com.devit.devitpayment.rabbitMQ;
 
 import com.devit.devitpayment.point.service.PointService;
 import com.devit.devitpayment.rabbitMQ.dto.UserDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class RabbitMqReceiver implements RabbitListenerConfigurer {
     private final PointService pointService;
-    private static final Logger logger = LoggerFactory.getLogger(RabbitMqReceiver.class);
 
     public RabbitMqReceiver(PointService pointService) {
         this.pointService = pointService;
@@ -25,7 +24,7 @@ public class RabbitMqReceiver implements RabbitListenerConfigurer {
     // 소비할 큐를 지정
     @RabbitListener(queues = "${spring.rabbitmq.queue}")
     public void receivedMessage(UserDto user) {
-        logger.info("User Details Received is.. " + user);
+        log.info("User Details Received is.. " + user);
         pointService.initUser(user);
     }
 }
