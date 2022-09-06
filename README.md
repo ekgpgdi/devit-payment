@@ -1,32 +1,112 @@
-# Devit
-<p align="center"> 
-<img src = 'https://user-images.githubusercontent.com/84092014/177942862-e4755aa7-f87b-4eaa-8eae-07bcaeb3932e.png' style='width:300px;'/>
-</p>
-경험이 많고 실력 있는 개발자에게 도움을 받기 위한 플랫폼입니다. <br/>
-기업 또는 개인에게 알맞는 개발자의 스펙과 원하는 직무를 등록하여 구인하고 개발자는 확인 후 지원서를 넣어 서로가 만족하는 상황이 되었을 때 계약이 진행될 수 있도록 중개하는 웹 사이트입니다. <br/>
-
-## Devit Architecture
-<img width="1005" alt="스크린샷 2022-07-25 오후 12 34 59" src="https://user-images.githubusercontent.com/84092014/180694026-b0c51181-5ddc-4e84-b659-2d32d33e05eb.png">
+# DevIT
+> 개발자 구인 구직 서비스 <br/>
+> https://devit.shop/
+<br/>
 
 ## Devit Payment Service
 Devit 프로젝트 내 결제 서비스입니다. <br/>
 인증 서비스에서 회원가입이 진행되면 인증 서비스에서 포인트 서비스로 RabbitMQ를 통하여 메세지를 전달하고 포인트 서비스는 해당 메세지를 받아 해당 유저와 매핑되는 point 정보를 생성합니다. <br/>
 포인트를 충전하고 해당 포인트로 결제를 진행합니다. <br/>
+<br/>
 
-[결제 시나리오]
-1. 결제에 대한 요청이 들어옴
-2. 제공자, 구매자와 매핑되는 point 테이블을 확인
-   * 한 명이라도 매핑되는 정보가 없으면 404 에러
-3. Board 도메인으로 uid 로 게시물에 대한 정보 요청 (API 통신)
-   * 이때 받아온 게시물의 price 보다 구매자의 보유 포인트가 적으면 400 에러
-4. 구매자의 포인트는 감소 및 포인트 기록 추가
-5. 제공자의 포인트는 증가 및 포인트 기록 추가
-6. 결제 기록 추가
+## 0. 총 코드 
+담당 개발자 : 이다혜 <br/>
+> 유레카 서버 : https://github.com/ekgpgdi/devit-eureka-server <br/>
+> 게이트웨이 : https://github.com/ekgpgdi/devit-gateway <br/>
+> 인증 서비스 : https://github.com/ekgpgdi/devit-certification-service <br/> 
+> 결제 서비스 : https://github.com/ekgpgdi/devit-payment <br/>
 
-## link to another repo
-eureka server : https://github.com/ekgpgdi/devit-eureka-server  <br/>
-gateway : https://github.com/ekgpgdi/devit-gateway <br/>
-certification : https://github.com/ekgpgdi/devit-certification-service <br/>
-board : https://github.com/kimziaco/devit-board <br/>
-user : https://github.com/eet43/devit-user <br/>
-chat : https://github.com/eet43/devit-chat <br/>
+
+담당 개발자 : 김지호 <br/>
+> 게시물 서비스 : https://github.com/kimziaco/devit-board <br/>
+ 
+
+담당 개발자 : 김대희 
+> 유저 서비스 : https://github.com/eet43/devit-user <br/>
+> 채팅 서비스 : https://github.com/eet43/devit-chat <br/>
+
+<br/>
+프론트 담당 : 이다혜, 김지호, 김대희 <br/>
+
+>프론트 : https://github.com/ekgpgdi/devit-front
+
+<br/>
+
+## 1. 제작 기간 & 참여 인원
+* 2022.06.24 ~ 2022.07.29
+* 3명 : [이다혜](https://github.com/ekgpgdi), [김지호](https://github.com/kimziaco?tab=repositories), [김대희](https://github.com/eet43)
+<br/>
+
+## 2. 사용 기술 
+<b>```Back-end```<b/>
+* Java11
+* Spring Boot 2.7.1
+* Gradle 7.4.1
+* Spring Data JPA
+* H2
+* MySQL 8.0.29
+* Spring Security 
+* JWT
+* Spring Cloud Eureka
+* RabbitMQ
+* Swagger
+
+<b>```Front-end```<b/>
+* HTML
+* JavaScript
+* Bootstrap
+
+<br/>
+
+## 3. ERD 설계
+
+<img width="639" alt="스크린샷 2022-08-09 오후 4 27 57" src="https://user-images.githubusercontent.com/84092014/183590368-612bee33-4c73-4739-a265-0365dc22a75c.png">
+
+ <img width="378" alt="스크린샷 2022-08-09 오후 4 28 09" src="https://user-images.githubusercontent.com/84092014/183590427-832e23ce-0ac3-4670-82e3-ca471412a0e2.png">
+
+
+
+<br/>
+<br/>
+
+## 4. 핵심 기능
+이 서비스의 핵심 기능은 구인자와 구직자의 결제입니다. <br/>
+현재는 결제를 경험해보기 위하여 포인트 형태로 구현해두었습니다. <br/>
+ 
+<img width="667" alt="스크린샷 2022-08-22 오전 11 03 59" src="https://user-images.githubusercontent.com/84092014/185824583-83de98c4-f28e-4de5-82d3-b6eaf6454c34.png">
+
+
+
+<br/>
+
+## 5. 아키텍처도
+<img width="699" alt="스크린샷 2022-08-22 오후 9 10 27" src="https://user-images.githubusercontent.com/84092014/186058191-a32c6744-0af4-47c0-8c8d-c67b00d6227d.png">
+<img width="1000" alt="스크린샷 2022-08-22 오후 9 10 35" src="https://user-images.githubusercontent.com/84092014/186058188-1d5e1188-0777-47a2-9fe9-1c818fce11b4.png">
+
+
+<br/>
+
+## 6. 핵심 트러블 슈팅
+<details><summary>1. 고객 피드백 반영</summary>
+
+[고객 피드백 확인](https://ddori-lee.tistory.com/entry/%EA%B3%A0%EA%B0%9D-%ED%94%BC%EB%93%9C%EB%B0%B1-%EB%B0%98%EC%98%81?category=1019915) 참고
+
+1. http 요청에 대한 처리 <br/>
+2. 회원가입 시 이메일 검증 추가 
+3. 각 도메인의 자료형이 달라 생기는 문제 해결 
+4. XSS 공격에 대한 대처 
+5. 게시글 작성 시간과 현재 시간의 불일치 해결
+6. 사진 크기에 따른 업로드 에러 해결
+7. 메세지큐 무한 롤백으로 인한 서버 마비 현상 해결
+</details>
+
+2. 배포 후 간헐적으로 발생하는 Cors 에러 해결
+> 팀원의 배포 과정 중 elb 의 타겟 그룹에 gateway 이외의 서비스가 올라가게 되었고 이로 인해 간헐적으로 cors 에러가 발생 
+> 간헐적으로 발생하는 cors 에러에 의문을 가지고 elb 설정을 확인하던 중 해당 문제의 원인을 파악하여 해결
+
+3. 쿠키 설정을 위한 프론트와 백엔드의 도메인 일치
+> 프론트와 백엔드의 도메인이 일치하지 않아 크롬 80 쿠키 정책에 의해 쿠키 저장이 실패하는 문제 발생
+> 프론트 도메인과 백엔드 도메인을 일치하도록 수정 
+> 프론트 도메인 : devit.shop 
+> 백엔드 도메인 : backend.devit.shop
+
